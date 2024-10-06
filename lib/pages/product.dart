@@ -5,13 +5,12 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:intl/intl.dart';
 import 'package:table_calendar/table_calendar.dart'; // เพิ่ม table_calendar
 
-
 class ProductListScreen extends StatefulWidget {
   final DatabaseHelper dbHelper;
 
   const ProductListScreen({Key? key, required this.dbHelper}) : super(key: key);
 
-@override
+  @override
   _ProductListScreenState createState() => _ProductListScreenState();
 }
 
@@ -43,9 +42,10 @@ class _ProductListScreenState extends State<ProductListScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('จองคิวแม่บ้าน'),
+        title: const Text('Clean-UP application'),
       ),
-      body: Stack(  // ใช้ Stack ในการซ้อนวัตถุ
+      body: Stack(
+        // ใช้ Stack ในการซ้อนวัตถุ
         children: [
           Container(
             color: Colors.orange[100], // พื้นหลังสีส้มอ่อน
@@ -58,33 +58,61 @@ class _ProductListScreenState extends State<ProductListScreen> {
                     scrollDirection: Axis.horizontal,
                     itemCount: 5, // จำนวนโฆษณาที่จะแสดง (เพราะมี 5 รูป)
                     itemBuilder: (context, index) {
-                      // สร้างเส้นทางของรูปภาพโดยใช้ชื่อไฟล์ที่ถูกต้อง
                       String imagePath = 'assets/images/maaban${index + 1}.png';
 
                       return Container(
                         width: 300, // ปรับความกว้างของกรอบให้ใหญ่ขึ้น
                         margin: EdgeInsets.all(16.0), // เพิ่ม margin รอบๆ กรอบ
                         decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(12.0), // เพิ่มความโค้งให้กรอบ
-                          color: Colors.orange, // สีพื้นหลังของโฆษณา
+                          borderRadius: BorderRadius.circular(
+                              16.0), // เพิ่มความโค้งให้กรอบ
+                          gradient: LinearGradient(
+                            colors: [Colors.orange[300]!, Colors.orange[600]!],
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                          ), // เพิ่ม gradient ที่ทำให้ดูสวยงามมากขึ้น
+                          boxShadow: [
+                            BoxShadow(
+                              color:
+                                  Colors.black.withOpacity(0.2), // เงาสีดำอ่อน
+                              blurRadius: 8, // ความเบลอของเงา
+                              offset: Offset(4, 4), // ทิศทางของเงา
+                            ),
+                          ],
                         ),
-                        child: Padding(
-                          padding: EdgeInsets.all(16.0), // เพิ่ม padding รอบๆ ภายในกรอบ
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(
+                              16.0), // ให้รูปภาพมีมุมโค้งเหมือนกับกรอบ
                           child: Column(
                             children: [
                               Expanded(
-                                flex: 4, // ใช้ flex เพื่อเพิ่มพื้นที่ให้กับรูปภาพ
+                                flex:
+                                    4, // ใช้ flex เพื่อเพิ่มพื้นที่ให้กับรูปภาพ
                                 child: Image.asset(
                                   imagePath, // แสดงรูปภาพจาก assets
-                                  fit: BoxFit.cover, // จัดการให้รูปภาพครอบคลุมพื้นที่
+                                  fit: BoxFit
+                                      .cover, // จัดการให้รูปภาพครอบคลุมพื้นที่
                                 ),
                               ),
-                              SizedBox(height: 10), // เพิ่มพื้นที่ระหว่างรูปภาพกับข้อความ
+                              SizedBox(
+                                  height:
+                                      10), // เพิ่มพื้นที่ระหว่างรูปภาพกับข้อความ
                               Expanded(
                                 flex: 1, // พื้นที่สำหรับข้อความโฆษณา
-                                child: Text(
-                                  'เเม่บ้านทำความสะอาดหมายเลขที่  ${index + 1}', // ข้อความโฆษณา
-                                  style: TextStyle(color: Colors.white, fontSize: 22), // ขนาดฟอนต์ใหญ่ขึ้น
+                                child: Padding(
+                                  padding:
+                                      EdgeInsets.symmetric(horizontal: 8.0),
+                                  child: Text(
+                                    'เเม่บ้านทำความสะอาดหมายเลขที่ ${index + 1}', // ข้อความโฆษณา
+                                    textAlign: TextAlign
+                                        .center, // จัดให้ข้อความอยู่กลาง
+                                    style: TextStyle(
+                                      color: Colors.white, // เปลี่ยนสีตัวอักษร
+                                      fontSize: 18, // ขนาดฟอนต์
+                                      fontWeight:
+                                          FontWeight.bold, // ทำให้ตัวหนา
+                                    ),
+                                  ),
                                 ),
                               ),
                             ],
@@ -114,7 +142,9 @@ class _ProductListScreenState extends State<ProductListScreen> {
                           contactnumber: data.containsKey('contactnumber')
                               ? data['contactnumber']
                               : '',
-                          address: data.containsKey('address') ? data['address'] : '',
+                          address: data.containsKey('address')
+                              ? data['address']
+                              : '',
                           bookingTime: data.containsKey('bookingTime')
                               ? data['bookingTime']
                               : '',
@@ -134,7 +164,22 @@ class _ProductListScreenState extends State<ProductListScreen> {
                             ),
                             onDismissed: (direction) {
                               if (direction == DismissDirection.endToStart) {
+                                // ลบข้อมูลจาก SQLite
                                 widget.dbHelper.deleteProduct(products[index]);
+
+                                // ลบข้อมูลจาก Firestore
+                                FirebaseFirestore.instance
+                                    .collection('bookings')
+                                    .where('name',
+                                        isEqualTo: products[index].name)
+                                    .get()
+                                    .then((snapshot) {
+                                  for (DocumentSnapshot ds in snapshot.docs) {
+                                    ds.reference.delete();
+                                  }
+                                });
+
+                                // อัพเดตหน้าจอหลังจากลบข้อมูล
                                 setState(() {
                                   products.removeAt(index);
                                 });
@@ -155,27 +200,29 @@ class _ProductListScreenState extends State<ProductListScreen> {
                                 subtitle: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                    Text('เลือกเเม่บ้านคนไหน: ${products[index].description}'),
-                                    Text('เบอร์: ${products[index].contactnumber}'),
+                                    Text(
+                                        'เลือกเเม่บ้านคนไหน: ${products[index].description}'),
+                                    Text(
+                                        'เบอร์: ${products[index].contactnumber}'),
                                     Text('ที่อยู่: ${products[index].address}'),
                                     // แก้ไขการแสดงเวลาจอง
-                                    Text('เวลาจอง: ${products[index].bookingTime is Timestamp 
-                                      ? DateFormat('dd/MM/yyyy HH:mm').format((products[index].bookingTime as Timestamp).toDate()) 
-                                      : products[index].bookingTime}'),
+                                    Text(
+                                        'เวลาจอง: ${products[index].bookingTime is Timestamp ? DateFormat('dd/MM/yyyy HH:mm').format((products[index].bookingTime as Timestamp).toDate()) : products[index].bookingTime}'),
                                   ],
                                 ),
                                 onTap: () async {
                                   var result = await Navigator.push(
                                     context,
                                     MaterialPageRoute(
-                                      builder: (context) =>
-                                          DetailScreen(productdetail: products[index]),
+                                      builder: (context) => DetailScreen(
+                                          productdetail: products[index]),
                                     ),
                                   );
                                   setState(() {
                                     if (result != null) {
                                       products[index].favorite = result;
-                                      widget.dbHelper.updateProduct(products[index]);
+                                      widget.dbHelper
+                                          .updateProduct(products[index]);
                                     }
                                   });
                                 },
@@ -196,11 +243,11 @@ class _ProductListScreenState extends State<ProductListScreen> {
               ],
             ),
           ),
-          
+
           // วางปุ่ม + ด้านบนปุ่มลูกศร
           Positioned(
             bottom: 90, // ย้ายปุ่ม + ขึ้นไปเล็กน้อย
-            right: 20,   // ระยะจากขอบขวาของหน้าจอ
+            right: 20, // ระยะจากขอบขวาของหน้าจอ
             child: FloatingActionButton(
               onPressed: () async {
                 await ModalProductForm(dbHelper: widget.dbHelper)
@@ -214,16 +261,17 @@ class _ProductListScreenState extends State<ProductListScreen> {
           // วางปุ่มลูกศรด้านล่างปุ่ม +
           Positioned(
             bottom: 20, // ระยะจากล่างสุดของหน้าจอ
-            right: 20,   // ระยะจากขอบขวาของหน้าจอให้ตรงกับปุ่ม + 
+            right: 20, // ระยะจากขอบขวาของหน้าจอให้ตรงกับปุ่ม +
             child: FloatingActionButton(
               onPressed: () {
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (context) => SecondPage()),  // นำทางไปหน้าใหม่
+                  MaterialPageRoute(
+                      builder: (context) => SecondPage()), // นำทางไปหน้าใหม่
                 );
               },
-              child: const Icon(Icons.arrow_forward),  // ไอคอนสำหรับปุ่มลูกศร
-              backgroundColor: Colors.orange,  // สีปุ่มเป็นสีส้ม
+              child: const Icon(Icons.arrow_forward), // ไอคอนสำหรับปุ่มลูกศร
+              backgroundColor: Colors.orange, // สีปุ่มเป็นสีส้ม
             ),
           ),
         ],
@@ -231,6 +279,7 @@ class _ProductListScreenState extends State<ProductListScreen> {
     );
   }
 }
+
 class DetailScreen extends StatelessWidget {
   const DetailScreen({Key? key, required this.productdetail}) : super(key: key);
 
@@ -270,27 +319,32 @@ class DetailScreen extends StatelessWidget {
                             children: [
                               Text(
                                 'ชื่อผู้จองเเละรายละเอียด: ${productdetail.name}',
-                                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                                style: TextStyle(
+                                    fontSize: 20, fontWeight: FontWeight.bold),
                               ),
                               Divider(),
                               Text(
                                 'เเม่บ้านที่เลือก: ${productdetail.description}',
-                                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                                style: TextStyle(
+                                    fontSize: 20, fontWeight: FontWeight.bold),
                               ),
                               Divider(),
                               Text(
                                 'ที่อยู่: ${productdetail.address}',
-                                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                                style: TextStyle(
+                                    fontSize: 20, fontWeight: FontWeight.bold),
                               ),
                               Divider(),
                               Text(
                                 'เบอร์โทร: ${productdetail.contactnumber}',
-                                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                                style: TextStyle(
+                                    fontSize: 20, fontWeight: FontWeight.bold),
                               ),
                               Divider(),
                               Text(
                                 'เวลาการจอง: ${productdetail.bookingTime}',
-                                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                                style: TextStyle(
+                                    fontSize: 20, fontWeight: FontWeight.bold),
                               ),
                             ],
                           ),
@@ -320,7 +374,6 @@ class DetailScreen extends StatelessWidget {
     );
   }
 }
-
 
 class ModalProductForm {
   ModalProductForm({Key? key, required this.dbHelper});
@@ -378,10 +431,13 @@ class ModalProductForm {
                   TextField(
                     decoration: InputDecoration(
                       labelText: 'ชื่อ เเละ รายละเอียด',
-                      labelStyle: TextStyle(color: Colors.black), // เปลี่ยนสีข้อความเป็นดำ
+                      labelStyle: TextStyle(
+                          color: Colors.black), // เปลี่ยนสีข้อความเป็นดำ
                       border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(10), // ขอบมุมที่โค้งมน
-                        borderSide: BorderSide(color: Colors.orangeAccent, width: 2), // ขอบสีดำ
+                        borderRadius:
+                            BorderRadius.circular(10), // ขอบมุมที่โค้งมน
+                        borderSide: BorderSide(
+                            color: Colors.orangeAccent, width: 2), // ขอบสีดำ
                       ),
                       filled: true, // ตั้งค่าให้มีสีพื้นหลัง
                       fillColor: Color(0xFFFFE0B2), // สีพื้นหลังของ TextField
@@ -398,7 +454,8 @@ class ModalProductForm {
                       labelStyle: TextStyle(color: Colors.black),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(10),
-                        borderSide: BorderSide(color: Colors.orangeAccent, width: 2),
+                        borderSide:
+                            BorderSide(color: Colors.orangeAccent, width: 2),
                       ),
                       filled: true,
                       fillColor: Color(0xFFFFE0B2),
@@ -415,7 +472,8 @@ class ModalProductForm {
                       labelStyle: TextStyle(color: Colors.black),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(10),
-                        borderSide: BorderSide(color: Colors.orangeAccent, width: 2),
+                        borderSide:
+                            BorderSide(color: Colors.orangeAccent, width: 2),
                       ),
                       filled: true,
                       fillColor: Color(0xFFFFE0B2),
@@ -432,7 +490,8 @@ class ModalProductForm {
                       labelStyle: TextStyle(color: Colors.black),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(10),
-                        borderSide: BorderSide(color: Colors.orangeAccent, width: 2),
+                        borderSide:
+                            BorderSide(color: Colors.orangeAccent, width: 2),
                       ),
                       filled: true,
                       fillColor: Color(0xFFFFE0B2),
@@ -452,7 +511,8 @@ class ModalProductForm {
                             _selectedDate == null
                                 ? 'เลือกวันที่'
                                 : 'วันที่: ${DateFormat('dd/MM/yyyy').format(_selectedDate!)}',
-                            style: TextStyle(color: Colors.black), // เปลี่ยนสีข้อความเป็นดำ
+                            style: TextStyle(
+                                color: Colors.black), // เปลี่ยนสีข้อความเป็นดำ
                           ),
                         ),
                       ),
@@ -463,7 +523,8 @@ class ModalProductForm {
                             _selectedTime == null
                                 ? 'เลือกเวลา'
                                 : 'เวลา: ${_selectedTime!.format(context)}',
-                            style: TextStyle(color: Colors.black), // เปลี่ยนสีข้อความเป็นดำ
+                            style: TextStyle(
+                                color: Colors.black), // เปลี่ยนสีข้อความเป็นดำ
                           ),
                         ),
                       ),
@@ -495,15 +556,19 @@ class ModalProductForm {
                     bookingTime:
                         '${DateFormat('dd/MM/yyyy').format(_selectedDate!)} ${_selectedTime!.format(context)}',
                   ));
-    
+
                   // บันทึกข้อมูลการจองไปยัง Firestore
                   FirebaseFirestore.instance.collection('bookings').add({
                     'name': _name,
                     'description': _description,
+                    'address': _address, // เพิ่มที่อยู่
+                    'contactnumber': _contactnumber, // เพิ่มเบอร์โทร
                     'bookingTime': Timestamp.fromDate(DateTime(
-                      _selectedDate!.year, _selectedDate!.month, _selectedDate!.day)),
+                        _selectedDate!.year,
+                        _selectedDate!.month,
+                        _selectedDate!.day)),
                   });
-    
+
                   Navigator.of(context).pop();
                 }
               },
@@ -519,11 +584,10 @@ class ModalProductForm {
   }
 }
 
-
-
 class ModalEditProductForm {
-  const ModalEditProductForm({Key? key, required this.dbHelper, required this.editedProduct});
-  
+  const ModalEditProductForm(
+      {Key? key, required this.dbHelper, required this.editedProduct});
+
   final DatabaseHelper dbHelper;
   final Product editedProduct;
 
@@ -539,14 +603,17 @@ class ModalEditProductForm {
           height: 500,
           decoration: BoxDecoration(
             color: Color(0xFFFFCC80), // เปลี่ยนสีพื้นหลังเป็นสีส้มจาง
-            borderRadius: BorderRadius.vertical(top: Radius.circular(20.0)), // รักษาขอบมุมที่โค้งมนด้านบน
+            borderRadius: BorderRadius.vertical(
+                top: Radius.circular(20.0)), // รักษาขอบมุมที่โค้งมนด้านบน
           ),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
               ListTile(
                 leading: IconButton(
-                  icon: Icon(Icons.close, color: Color.fromARGB(255, 0, 0, 0)), // เปลี่ยนสีไอคอนเป็นดำ
+                  icon: Icon(Icons.close,
+                      color:
+                          Color.fromARGB(255, 0, 0, 0)), // เปลี่ยนสีไอคอนเป็นดำ
                   onPressed: () {
                     Navigator.pop(context);
                   },
@@ -567,8 +634,10 @@ class ModalEditProductForm {
                     Navigator.pop(context);
                   },
                   child: const Text(
-                    'บันทึก', 
-                    style: TextStyle(color: Colors.black, fontSize: 16), // เปลี่ยนสีตัวอักษรเป็นดำ
+                    'บันทึก',
+                    style: TextStyle(
+                        color: Colors.black,
+                        fontSize: 16), // เปลี่ยนสีตัวอักษรเป็นดำ
                   ),
                 ),
               ),
@@ -584,16 +653,23 @@ class ModalEditProductForm {
                       decoration: InputDecoration(
                         hintText: 'ชื่อเเละบริการ (เช่น ทำความสะอาด)',
                         labelText: 'ชื่อเเละรายละเอียด',
-                        labelStyle: TextStyle(color: Colors.black), // เปลี่ยนสี label เป็นดำ
-                        hintStyle: TextStyle(color: Colors.black54), // เปลี่ยนสี hint เป็นดำจาง
+                        labelStyle: TextStyle(
+                            color: Colors.black), // เปลี่ยนสี label เป็นดำ
+                        hintStyle: TextStyle(
+                            color: Colors.black54), // เปลี่ยนสี hint เป็นดำจาง
                         filled: true, // ทำให้ TextField มีพื้นหลัง
                         fillColor: Color(0xFFFFE0B2), // สีพื้นหลังของ TextField
                         enabledBorder: OutlineInputBorder(
-                          borderSide: BorderSide(color: Colors.orangeAccent, width: 2), // ขอบของ TextField เป็นดำ
-                          borderRadius: BorderRadius.circular(10), // ขอบมุมที่โค้งมน
+                          borderSide: BorderSide(
+                              color: Colors.orangeAccent,
+                              width: 2), // ขอบของ TextField เป็นดำ
+                          borderRadius:
+                              BorderRadius.circular(10), // ขอบมุมที่โค้งมน
                         ),
                         focusedBorder: OutlineInputBorder(
-                          borderSide: BorderSide(color: Colors.orangeAccent, width: 2), // ขอบเมื่อถูกเลือก
+                          borderSide: BorderSide(
+                              color: Colors.orangeAccent,
+                              width: 2), // ขอบเมื่อถูกเลือก
                           borderRadius: BorderRadius.circular(10),
                         ),
                       ),
@@ -612,11 +688,13 @@ class ModalEditProductForm {
                         filled: true,
                         fillColor: Color(0xFFFFE0B2),
                         enabledBorder: OutlineInputBorder(
-                          borderSide: BorderSide(color: Colors.orangeAccent, width: 2),
+                          borderSide:
+                              BorderSide(color: Colors.orangeAccent, width: 2),
                           borderRadius: BorderRadius.circular(10),
                         ),
                         focusedBorder: OutlineInputBorder(
-                          borderSide: BorderSide(color: Colors.orangeAccent, width: 2),
+                          borderSide:
+                              BorderSide(color: Colors.orangeAccent, width: 2),
                           borderRadius: BorderRadius.circular(10),
                         ),
                       ),
@@ -635,11 +713,13 @@ class ModalEditProductForm {
                         filled: true,
                         fillColor: Color(0xFFFFE0B2),
                         enabledBorder: OutlineInputBorder(
-                          borderSide: BorderSide(color: Colors.orangeAccent, width: 2),
+                          borderSide:
+                              BorderSide(color: Colors.orangeAccent, width: 2),
                           borderRadius: BorderRadius.circular(10),
                         ),
                         focusedBorder: OutlineInputBorder(
-                          borderSide: BorderSide(color: Colors.orangeAccent, width: 2),
+                          borderSide:
+                              BorderSide(color: Colors.orangeAccent, width: 2),
                           borderRadius: BorderRadius.circular(10),
                         ),
                       ),
@@ -658,11 +738,13 @@ class ModalEditProductForm {
                         filled: true,
                         fillColor: Color(0xFFFFE0B2),
                         enabledBorder: OutlineInputBorder(
-                          borderSide: BorderSide(color: Colors.orangeAccent, width: 2),
+                          borderSide:
+                              BorderSide(color: Colors.orangeAccent, width: 2),
                           borderRadius: BorderRadius.circular(10),
                         ),
                         focusedBorder: OutlineInputBorder(
-                          borderSide: BorderSide(color: Colors.orangeAccent, width: 2),
+                          borderSide:
+                              BorderSide(color: Colors.orangeAccent, width: 2),
                           borderRadius: BorderRadius.circular(10),
                         ),
                       ),
@@ -689,7 +771,7 @@ class _SecondPageState extends State<SecondPage> {
   DateTime _selectedDay = DateTime.now();
   DateTime _focusedDay = DateTime.now();
 
-  Map<DateTime, List<String>> _bookings = {}; // ข้อมูลการจอง
+  Map<DateTime, List<Map<String, dynamic>>> _bookings = {}; // ข้อมูลการจอง
 
   @override
   void initState() {
@@ -699,33 +781,41 @@ class _SecondPageState extends State<SecondPage> {
 
   // ฟังก์ชันดึงข้อมูลการจองจาก Firestore
   void _fetchBookings() async {
-    QuerySnapshot snapshot = await FirebaseFirestore.instance.collection('bookings').get();
-    Map<DateTime, List<String>> bookings = {};
-    
+    QuerySnapshot snapshot =
+        await FirebaseFirestore.instance.collection('bookings').get();
+    Map<DateTime, List<Map<String, dynamic>>> bookings = {};
+
     for (var doc in snapshot.docs) {
       var data = doc.data() as Map<String, dynamic>;
       DateTime bookingDate = (data['bookingTime'] as Timestamp).toDate();
-      
-      // แปลงเป็นวันที่แบบไม่รวมเวลา
-      DateTime day = DateTime(bookingDate.year, bookingDate.month, bookingDate.day);
-      
-      // ตรวจสอบว่า bookings[day] มีหรือยัง ถ้าไม่มีให้สร้าง List ใหม่
+
+      DateTime day =
+          DateTime(bookingDate.year, bookingDate.month, bookingDate.day);
+
       if (bookings[day] == null) {
         bookings[day] = [];
       }
-      
-      // เพิ่มข้อมูลการจองเข้าไปในวันที่นั้น
-      bookings[day]!.add(data['name']);
+
+      bookings[day]!.add({
+        'name': data['name'],
+        'description': data['description'],
+        'address': data['address'],
+        'contactnumber': data['contactnumber'],
+        'bookingTime': data['bookingTime'] != null
+            ? DateFormat('dd/MM/yyyy HH:mm')
+                .format((data['bookingTime'] as Timestamp).toDate())
+            : 'ไม่มีข้อมูลเวลา', // ตรวจสอบว่าข้อมูลเวลามีหรือไม่
+      });
     }
 
     setState(() {
       _bookings = bookings;
-      print('Bookings loaded: $_bookings'); // ตรวจสอบว่าดึงข้อมูลมาหรือยัง
+      print('Bookings loaded: $_bookings');
     });
   }
 
   // ฟังก์ชันสำหรับแสดงว่ามีการจองในวันไหนบ้าง
-  List<String> _getEventsForDay(DateTime day) {
+  List<Map<String, dynamic>> _getEventsForDay(DateTime day) {
     return _bookings[DateTime(day.year, day.month, day.day)] ?? [];
   }
 
@@ -791,7 +881,7 @@ class _SecondPageState extends State<SecondPage> {
 
   // สร้างรายการแสดงชื่อคนจองในวันที่เลือก
   Widget _buildBookingList() {
-    List<String> events = _getEventsForDay(_selectedDay);
+    List<Map<String, dynamic>> events = _getEventsForDay(_selectedDay);
 
     if (events.isEmpty) {
       return Center(
@@ -802,8 +892,100 @@ class _SecondPageState extends State<SecondPage> {
     return ListView.builder(
       itemCount: events.length,
       itemBuilder: (context, index) {
-        return ListTile(
-          title: Text(events[index]),
+        var event = events[index];
+        return Card(
+          elevation: 4, // เพิ่มเงาให้กับ Card
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(15), // มุมโค้งมนให้กับ Card
+          ),
+          margin: EdgeInsets.symmetric(horizontal: 12.0, vertical: 8.0),
+          child: Padding(
+            padding: EdgeInsets.all(16.0), // เพิ่ม padding ให้กับเนื้อหาใน Card
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'ชื่อ: ${event['name']}',
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold, // เน้นชื่อเป็นตัวหนา
+                    color: Colors.black87,
+                  ),
+                ),
+                Divider(), // เส้นคั่นระหว่างข้อมูลแต่ละส่วน
+                Row(
+                  children: [
+                    Icon(Icons.cleaning_services, color: Colors.orange),
+                    SizedBox(width: 8),
+                    Text(
+                      'แม่บ้านที่เลือก: ${event['description']}',
+                      style: TextStyle(
+                        fontSize: 16,
+                        color: Colors.grey[800], // สีเทาเข้ม
+                      ),
+                    ),
+                  ],
+                ),
+                SizedBox(height: 4), // เพิ่มระยะห่างระหว่างบรรทัด
+                Row(
+                  children: [
+                    Icon(Icons.home, color: Colors.green),
+                    SizedBox(width: 8),
+                    Text(
+                      'ที่อยู่: ${event['address'] ?? 'ไม่มีข้อมูล'}',
+                      style: TextStyle(
+                        fontSize: 16,
+                        color: Colors.grey[800],
+                      ),
+                    ),
+                  ],
+                ),
+                SizedBox(height: 4),
+                Row(
+                  children: [
+                    Icon(Icons.phone, color: Colors.blue),
+                    SizedBox(width: 8),
+                    Text(
+                      'เบอร์โทร: ${event['contactnumber'] ?? 'ไม่มีข้อมูล'}',
+                      style: TextStyle(
+                        fontSize: 16,
+                        color: Colors.grey[800],
+                      ),
+                    ),
+                  ],
+                ),
+                SizedBox(height: 4),
+                Divider(),
+                Row(
+                  children: [
+                    Icon(Icons.access_time, color: Colors.redAccent),
+                    SizedBox(width: 8),
+                    Text(
+                      () {
+                        DateTime bookingTime = DateFormat('dd/MM/yyyy HH:mm')
+                            .parse(event['bookingTime']);
+                        int differenceInDays =
+                            bookingTime.difference(DateTime.now()).inDays;
+
+                        if (differenceInDays > 0) {
+                          return 'ใกล้ถึงเวลาในอีก $differenceInDays วัน';
+                        } else if (differenceInDays == 0) {
+                          return 'ใกล้ถึงเวลาแล้ว (วันนี้)';
+                        } else {
+                          return 'เวลาการจอง: ${event['bookingTime']}';
+                        }
+                      }(),
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.redAccent,
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
         );
       },
     );
