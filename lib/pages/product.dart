@@ -495,6 +495,15 @@ class ModalProductForm {
                     bookingTime:
                         '${DateFormat('dd/MM/yyyy').format(_selectedDate!)} ${_selectedTime!.format(context)}',
                   ));
+    
+                  // บันทึกข้อมูลการจองไปยัง Firestore
+                  FirebaseFirestore.instance.collection('bookings').add({
+                    'name': _name,
+                    'description': _description,
+                    'bookingTime': Timestamp.fromDate(DateTime(
+                      _selectedDate!.year, _selectedDate!.month, _selectedDate!.day)),
+                  });
+    
                   Navigator.of(context).pop();
                 }
               },
@@ -509,6 +518,7 @@ class ModalProductForm {
     );
   }
 }
+
 
 
 class ModalEditProductForm {
